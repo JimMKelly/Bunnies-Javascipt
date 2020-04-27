@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Bunnies</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+<script src="bunnyScripts.js"></script>
+</head>
+
+<body bgcolor="#808000">
+<button onclick="createBunny()">Create a bunny</button>
+<button onclick="createFive()">Create five bunnies</button>
+<button onclick="nextTurn()">Next Turn</button>
+<button onclick="halfPop()">Half Population</button>
+<button id="autoTurn" onclick="startAuto()">Start autoplay</button>
+<button onclick="updateCanvas()">Update canvas</button>
+<p id="turns"></p>
+<table align="center" id="summaryTable" border="1">
+<caption id="tabcap">Summary of Bunnies</caption>
+  <tr>
+    <th>Total</th>
+    <th>Male</th>
+    <th>Female</th>
+    <th>Black</th>
+    <th>White</th>
+    <th>Brown</th>
+    <th>Spotted</th>
+    <th>Radioactive</th>
+  </tr>
+  <tr>
+    <td id="total"></td>
+	<td id="male"></td>
+	<td id="female"></td>
+	<td id="black"></td>
+	<td id="white"></td>
+	<td id="brown"></td>
+	<td id="spotted"></td>
+	<td id="radioactive"></td>
+  </tr>
+ </table>
+ <div class="row">
+  <div class="column" align="center">
+	<canvas id="myCanvas" width="800" height="800">blah</canvas>
+  </div>
+  <div class="column">
+	<table align="center" id="itemTable" border="1">
+	<caption id="tabcap">Bunnies:</caption>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Sex</th>
+        <th>Age</th>
+        <th>Colour</th>
+        <th>Vampire</th>
+        <th>Coordinates</th>
+    </tr>
+	</table>
+  </div>
+</div>
+
+
+</body>
+</html>

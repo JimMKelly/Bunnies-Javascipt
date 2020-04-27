@@ -13,6 +13,8 @@ var numWhite = 0;
 var numBrown = 0;
 var numSpotted = 0;
 var numRadioactive = 0;
+const canvRows = 40;
+const canvCols = 40;
 const popCap = 1000;
 
 class Bunnies {
@@ -27,13 +29,14 @@ class Bunnies {
 	this.yPos = _y;
 	this.charac = _char;
   }
+
 }
 
 function updateCanvas() {
 	var c = document.getElementById("myCanvas");
 	var ctx = c.getContext("2d");
-	var w = 800;
-	var h = 800;
+	var w = canvCols * 10;
+	var h = canvRows * 10;
 	ctx.canvas.width  = w;
     ctx.canvas.height = h;
 
@@ -48,18 +51,34 @@ function updateCanvas() {
 		ctx.stroke();
     }
 	
+	let l = arrBunnies.length;
+	for(let i = 0; i < l; i++)	{
+		for(let j = 0; j < l; j++)	{
+			if(!i==j){
+				if(arrBunnies[i]._xPos == arrBunnies[j]._xPos && arrBunnies[i]._yPos == arrBunnies[j]._yPos) {
+					console.log("Overlap! bunny " + i + " and bunny " + j);
+					ctx.fillStyle = "#FF0000";
+					let bunnyXY = checkAvailable(arrBunnies[i]._xPos, arrBunnies[i]._yPos, arrBunnies[i]._age);
+					arrBunnies[i]._xPos = bunnyXY.x;
+					arrBunnies[i]._yPos = bunnyXY.y;
+					ctx.fillRect(arrBunnies[i]._xPos*10, (arrBunnies[i]._yPos+1)*10, 10, 10);
+				}
+			}
+		}	
+	}
+
 	ctx.font = "8px Arial";
-	let l=arrBunnies.length;
-	for(let i=0; i<l; i++)
-	{
-		ctx.strokeText(arrBunnies[i]._char, arrBunnies[i]._xPos*10 + 2, arrBunnies[i]._yPos*10 - 2);
+//	let l=arrBunnies.length;
+	for(let i = 0; i < l; i++) {
+		ctx.strokeText("", arrBunnies[i]._xPos*10 + 2, arrBunnies[i]._yPos*10 - 2);
+		ctx.strokeText(arrBunnies[i]._char, arrBunnies[i]._xPos*10 + 2, (arrBunnies[i]._yPos+1)*10 - 2);
 	}
 	
 }
 
 function tempAlert(msg,duration) {
  var el = document.createElement("div");
- el.setAttribute("style","position:absolute;top:40%;left:20%;background-color:grey;border-style: groove;");
+ el.setAttribute("style","position:absolute;top:40%;left:60%;background-color:grey;border-style: groove;");
  el.innerHTML = msg;
  setTimeout(function(){
   el.parentNode.removeChild(el);
@@ -74,8 +93,11 @@ function startAuto() {
 
 function automateTurns() {
 	if(automate){
+		document.getElementById("autoTurn").innerHTML = "Stop autoplay";
 		nextTurn();
 		setTimeout(automateTurns, 2000);
+	} else {
+		document.getElementById("autoTurn").innerHTML = "Start autoplay";
 	}
 }
 
@@ -98,7 +120,13 @@ function createBunny(_col){
 		"Cid",
 		"Vincent",
 		"Biggs",
-		"Wedge"
+		"Wedge",
+		"Luke",
+		"Leia",
+		"Han",
+		"Spot",
+		"Fred",
+		"George"
 	];
 	var bunnyColours = [
 		"Black",
@@ -133,10 +161,14 @@ function createBunny(_col){
 	{
 		bunChar = "x";
 	}
-	let posAvailable = false;
-	let bunXPos = Math.floor(Math.random() * 80);
-	let bunYPos = Math.floor(Math.random() * 80);
 	
+	//Check position is available
+	let tempXY = chooseRandSpot();
+	let bunXPos = tempXY.x;
+	let bunYPos = tempXY.y;
+	let bunnyXY = checkAvailable(bunXPos, bunYPos, 0);
+	//let bunnyXY = { bunXPos: bunXPos, bunYPos : bunYPos };
+	//console.log(bunnyXY);
 	var bunnyToAdd = {
 		_id : bunnyID,
 		_sex: sex,
@@ -144,14 +176,15 @@ function createBunny(_col){
 		_age: 0,
 		_name: bunName,
 		_radioactive: radioactive,
-		_xPos: bunXPos,
-		_yPos: bunYPos,
+		_xPos: bunnyXY.x,
+		_yPos: bunnyXY.y,
 		_char: bunChar
 	}
 	
 	arrBunnies.push(bunnyToAdd);	
 	newBunnies.push(bunnyToAdd._id);
 	bunniesTable();
+	//updateCanvas();
 }
 
 function bunniesTable(){
@@ -195,8 +228,7 @@ function nextTurn() {
 	let femalesTwoPlus = 0;
 	numTurns++;
 	for(let i=l-1; i >= 0; i--)
-	{
-		if(arrBunnies[i]._radioactive == false) //If not zombies
+	{if(arrBunnies[i]._radioactive == false) //If not zombies
 		{
 			//Kill bunny if ages over 10
 			if(arrBunnies[i]._age > 10) 
@@ -245,9 +277,107 @@ function nextTurn() {
 	{ 
 		halfPop(); 
 	}
+	
 	bunniesTable();
 	displayEvents();
+	moveBunnies(l);
+	updateCanvas();
+}
+
+function moveBunnies(len) {
+	let l = len;
+	for(let i = 0; i < l; i++)
+	{
+		if(arrBunnies[i]._age > 0) {
+			let bunnyXY = checkAvailable(arrBunnies[i]._xPos, arrBunnies[i]._yPos, arrBunnies[i]._age);
+			arrBunnies[i]._xPos = bunnyXY.x;
+			arrBunnies[i]._yPos = bunnyXY.y;
+		}
+		
+	}
+}
+
+function checkAvailable(x, y, _age) {
+	let posAvailable = false;
+	let bunXPos = x;
+	let bunYPos = y;
+	let age = _age;
+	let posChange = 0;
 	
+	l = arrBunnies.length;
+	if(l > 0) {		
+		for(let i=0; i < l; i++) {
+			let cnt = 0;
+			while (!posAvailable) {
+				bunXPos = x;
+				bunYPos = y;
+				if(cnt > 10) {
+					let tempXY = chooseRandSpot();
+				//	console.log("count = " + cnt);
+					bunXPos = tempXY.x;
+					bunYPos = tempXY.y;
+				}
+				if(age == 0) {
+					//Check doesn't go out of bounds
+					if(bunXPos < 0 || bunXPos >= canvCols || bunYPos < 0 || bunYPos >= canvRows ) {
+						posAvailable = false;
+						break;
+					}
+					//Check the spot is not already taken
+					if (bunXPos == arrBunnies[i]._xPos && bunYPos == arrBunnies[i]._yPos) {
+					//	console.log("Spot taken, new bunny.");
+						let tempXY = chooseRandSpot();
+						bunXPos = tempXY.x;
+						bunYPos = tempXY.y;
+						posAvailable = false;
+						break;
+					}
+					posAvailable = true;
+				} else {
+					bunXPos = x;
+					bunYPos = y;
+					posChange = Math.floor(Math.random() * 4);
+					switch(posChange) {
+						case 0:
+						bunXPos++;
+						break;
+						case 1:
+						bunXPos--;
+						break;
+						case 2:
+						bunYPos++;
+						break;
+						case 3:
+						bunYPos--;
+						break;
+					}
+					//Check doesn't go out of bounds
+					if(bunXPos < 0 || bunXPos >= canvCols || bunYPos < 0 || bunYPos >= canvRows ) {
+				//		console.log("Out of bounds, older");
+						cnt++;
+						posAvailable = false;
+						break;
+					}
+					//Check the spot is not already taken
+					if (bunXPos == arrBunnies[i]._xPos && bunYPos == arrBunnies[i]._yPos) {
+				//		console.log("Spot taken, older bunny.");
+						posAvailable = false;
+						break;
+					}
+					posAvailable = true;
+				}
+			}
+		}
+	}
+	let bunXY = { x: bunXPos, y:bunYPos };
+	return bunXY;
+}
+
+function chooseRandSpot(){
+	let ranX = Math.floor(Math.random() * (canvCols-1));
+	let ranY = Math.floor(Math.random() * (canvRows-1));
+	let ranXY = { x: ranX, y : ranY };
+	return ranXY;
 }
 
 function displayEvents() {
@@ -318,15 +448,17 @@ function turnRadioactive(){
 			nonZombies.splice(x1,1);
 		}
 	}
-	let n = toTurnZombie.length;
-	for(let i=l-1; i >= 0; i--)  //Loop through all bunnies
-	{
-		for(let j = n-1; j >= 0; j--) //Loop through bunnies to turn
+	
+	if (nonZombies.length > 0){		
+		for(let i=l-1; i >= 0; i--)  //Loop through all bunnies
 		{
-			if(toTurnZombie[j] == arrBunnies[i]._id) 
+			for(let j = toTurnZombie.length-1; j >= 0; j--) //Loop through bunnies to turn
 			{
-				arrBunnies[i]._radioactive = true;
-				newZombies.push(arrBunnies[i]._id);
+				if(toTurnZombie[j] == arrBunnies[i]._id) 
+				{
+					arrBunnies[i]._radioactive = true;
+					newZombies.push(arrBunnies[i]._id);
+				}
 			}
 		}
 	}
@@ -348,7 +480,7 @@ function halfPop(){
 	}
 	
 	let n = toCull.length;
-	console.log(arrBunnies);
+	//console.log(arrBunnies);
 	for(let i=l-1; i >= 0; i--)  //Loop through all bunnies
 	{
 		if(toCull.includes(arrBunnies[i]._id))
@@ -364,9 +496,9 @@ function halfPop(){
 function updateItemTable(){	
 	var table = document.getElementById("itemTable");
 	
-	for(let i = document.getElementById("itemTable").rows.length; i > 1;i--)
+	for(let i = table.rows.length; i > 1;i--)
 	{
-		document.getElementById("itemTable").deleteRow(i-1);
+		table.deleteRow(i-1);
 	}
 	
 	let l = arrBunnies.length;
@@ -380,12 +512,15 @@ function updateItemTable(){
 		var cell4 = row.insertCell(3);
 		var cell5 = row.insertCell(4);
 		var cell6 = row.insertCell(5);
+		var cell7 = row.insertCell(6);
 		cell1.innerHTML = arrBunnies[i]._id;
 		cell2.innerHTML = arrBunnies[i]._name;
 		cell3.innerHTML = arrBunnies[i]._sex;
 		cell4.innerHTML = arrBunnies[i]._age;
 		cell5.innerHTML = arrBunnies[i]._colour;
 		cell6.innerHTML = arrBunnies[i]._radioactive;
+		cell7.innerHTML = "x: " + arrBunnies[i]._xPos + " , y:" + arrBunnies[i]._yPos;
 	}
 	
 }
+
